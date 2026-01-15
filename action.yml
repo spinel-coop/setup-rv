@@ -1,0 +1,48 @@
+name: "Setup rv"
+description: "Fast Ruby version management with rv"
+author: "spinel-coop"
+branding:
+  icon: "box"
+  color: "red"
+
+inputs:
+  ruby-version:
+    description: "Ruby version to install. Defaults to latest stable."
+    required: false
+    default: "latest"
+  bundler-cache:
+    description: "Run 'rv ci' and cache installed gems"
+    required: false
+    default: "false"
+  working-directory:
+    description: "Directory containing Gemfile and/or .ruby-version"
+    required: false
+    default: "."
+
+outputs:
+  ruby-version:
+    description: "The installed Ruby version"
+    value: ${{ steps.setup.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    # Step 1: Restore rv cache
+    - name: Cache rv
+      if: inputs.bundler-cache == 'true'
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cache/rv
+          ~/.local/share/rv
+        key: rv-${{ runner.os }}-${{ runner.arch }}
+
+    # Step 2: Install rv, Ruby, and optionally run rv ci
+    - name: Setup rv and Ruby
+      id: setup
+      shell: bash
+      env:
+        RUBY_VERSION: ${{ inputs.ruby-version }}
+        BUNDLER_CACHE: ${{ inputs.bundler-cache }}
+        WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: ${{ github.action_path }}/action.sh
