@@ -2,6 +2,8 @@
 
 A GitHub Action for fast Ruby version management using [rv](https://github.com/spinel-coop/rv).
 
+_**Note:** This Action is not yet production-ready._
+
 ## Usage
 
 ### Install the latest Ruby
