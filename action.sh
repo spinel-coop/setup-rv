@@ -20,7 +20,8 @@ else
   rv ruby install "$RUBY_VERSION"
 fi
 
-INSTALLED=$(rv ruby pin)
+# INSTALLED=$(rv ruby pin) # TODO: make pin print the pinned ruby version
+INSTALLED=$(rv ruby list | grep "*" | cut -c 8-12)
 echo "Installed Ruby $INSTALLED"
 
 RUBY_BIN="$HOME/.rubies/ruby-$INSTALLED/bin"
