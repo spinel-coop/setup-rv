@@ -17,6 +17,7 @@ jobs:
         uses: ./
         with:
           bundler-cache: true
+          working-directory: .github/workflows # Find CI specific Gemfile.lock
 
       - name: Verify Ruby
         run: ruby --version
