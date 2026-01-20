@@ -20,4 +20,4 @@ jobs:
           working-directory: .github/workflows # Find CI specific Gemfile.lock
 
       - name: Verify Ruby
-        run: which ruby
+        run: echo $PATH
