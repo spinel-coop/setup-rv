@@ -24,7 +24,7 @@ fi
 INSTALLED=$(rv ruby list | grep "*" | cut -c 8-12)
 echo "Installed Ruby $INSTALLED"
 
-RUBY_BIN="$HOME/.rubies/ruby-$INSTALLED/bin"
+RUBY_BIN="$HOME/.local/share/rv/rubies/ruby-$INSTALLED/bin"
 export PATH="$RUBY_BIN:$PATH"
 echo "$RUBY_BIN" >> "$GITHUB_PATH"
 echo "version=$INSTALLED" >> "$GITHUB_OUTPUT"
