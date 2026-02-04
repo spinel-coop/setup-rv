@@ -1,36 +1,53 @@
 #!/bin/bash
 set -euo pipefail
 
-# Install rv
-echo "Installing rv..."
-curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/spinel-coop/rv/releases/latest/download/rv-installer.sh | sh
+ACTION="${1:-all}"
 
-export PATH="$HOME/.cargo/bin:$PATH"
-echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+setup_ruby() {
+  # Install rv
+  echo "Installing rv..."
+  curl --proto '=https' --tlsv1.2 -LsSf --fail \
+    https://github.com/spinel-coop/rv/releases/latest/download/rv-installer.sh | sh
 
-# Install Ruby
-cd "$WORKING_DIRECTORY"
+  export PATH="$HOME/.cargo/bin:$PATH"
+  echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-if [ "$RUBY_VERSION" = "latest" ]; then
-  echo "Installing latest Ruby..."
-  rv ruby install
-else
-  echo "Installing Ruby $RUBY_VERSION..."
-  rv ruby install "$RUBY_VERSION"
-fi
+  # Install Ruby
+  cd "$WORKING_DIRECTORY"
 
-# INSTALLED=$(rv ruby pin) # TODO: make pin print the pinned ruby version
-INSTALLED=$(rv ruby list | grep "*" | cut -c 8-12)
-echo "Installed Ruby $INSTALLED"
+  if [ "$RUBY_VERSION" = "latest" ]; then
+    echo "Installing latest Ruby..."
+    rv ruby install
+  else
+    echo "Installing Ruby $RUBY_VERSION..."
+    rv ruby install "$RUBY_VERSION"
+  fi
 
-RUBY_BIN="$HOME/.local/share/rv/rubies/ruby-$INSTALLED/bin"
-export PATH="$RUBY_BIN:$PATH"
-echo "$RUBY_BIN" >> "$GITHUB_PATH"
-echo "version=$INSTALLED" >> "$GITHUB_OUTPUT"
+  INSTALLED=$(rv ruby list --format json | jq -r '.[] | select(.active == true) | .version | sub("^ruby-"; "")')
+  echo "Installed Ruby $INSTALLED"
 
-# Run rv ci
-if [ "$BUNDLER_CACHE" = "true" ]; then
+  RUBY_BIN="$HOME/.local/share/rv/rubies/ruby-$INSTALLED/bin"
+  export PATH="$RUBY_BIN:$PATH"
+  echo "$RUBY_BIN" >> "$GITHUB_PATH"
+  echo "ruby-version=$INSTALLED" >> "$GITHUB_OUTPUT"
+}
+
+install_gems() {
   echo "Running rv ci..."
-  rv ci
-fi
+  BUNDLE_PATH=vendor/bundle rv ci
+  echo "BUNDLE_PATH=vendor/bundle" >> "$GITHUB_ENV"
+}
+
+case "$ACTION" in
+  setup)
+    setup_ruby
+    ;;
+  install-gems)
+    install_gems
+    ;;
+  *)
+    echo "Unknown action: $ACTION"
+    echo "Usage: action.sh [setup|install-gems]"
+    exit 1
+    ;;
+esac
