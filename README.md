@@ -2,8 +2,6 @@
 
 A GitHub Action for fast Ruby version management using [rv](https://github.com/spinel-coop/rv).
 
-_**Note:** This Action is not yet production-ready._
-
 ## Usage
 
 ### Install the latest Ruby
@@ -52,12 +50,14 @@ _**Note:** This Action is not yet production-ready._
 | `ruby-version` | Ruby version to install | `latest` |
 | `bundler-cache` | Run `rv ci` and cache installed gems | `false` |
 | `working-directory` | Directory containing `Gemfile` and/or `.ruby-version` | `.` |
+| `cache-version` | Increment to invalidate the gem cache | `0` |
 
 ## Outputs
 
-| Output | Description |
-|--------|-------------|
-| `ruby-version` | The installed Ruby version |
+| Output | Description | Example |
+|--------|-------------|---------|
+| `ruby-version` | The installed Ruby version | `4.0.1` |
+| `cache-hit` | Whether the gem cache was restored exactly | `true` |
 
 ## Migrating from `ruby/setup-ruby`
 
@@ -81,17 +81,17 @@ _**Note:** This Action is not yet production-ready._
 
 ## How it works
 
-1. Downloads and installs the latest `rv` binary
-2. Installs the specified Ruby version (or latest) using `rv ruby install`
-3. If `bundler-cache: true`:
-   - Restores rv's cache from the GitHub Actions cache
-   - Runs `rv ci` to install gems and build native extensions
-   - Saves rv's cache for future runs
+1. Installs `rv` and the specified Ruby version (or restores from cache)
+2. If `bundler-cache: true`:
+   - Restores gem cache (includes compiled native extensions)
+   - Runs `rv ci` to install gems
+   - Saves gem cache (keyed by OS, arch, Ruby version, and `Gemfile.lock`)
 
 ## Supported platforms
 
 - Linux (x86_64, ARM64)
 - macOS (x86_64, ARM64)
+- Windows (x86_64) - coming soon
 
 ## License
 
