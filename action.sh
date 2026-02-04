@@ -32,6 +32,5 @@ echo "version=$INSTALLED" >> "$GITHUB_OUTPUT"
 # Run rv ci
 if [ "$BUNDLER_CACHE" = "true" ]; then
   echo "Running rv ci..."
-  BUNDLE_PATH=vendor/bundle rv ci
-  echo "BUNDLE_PATH=vendor/bundle" >> "$GITHUB_ENV"
+  rv ci
 fi
