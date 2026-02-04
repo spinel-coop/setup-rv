@@ -18,18 +18,24 @@ inputs:
     description: "Directory containing Gemfile and/or .ruby-version"
     required: false
     default: "."
+  cache-version:
+    description: "Increment to invalidate the gem cache"
+    required: false
+    default: "0"
 
 outputs:
   ruby-version:
     description: "The installed Ruby version"
-    value: ${{ steps.setup.outputs.version }}
+    value: ${{ steps.setup.outputs.ruby-version }}
+  cache-hit:
+    description: "Whether the gem cache was restored exactly"
+    value: ${{ steps.gem-cache.outputs.cache-hit }}
 
 runs:
   using: "composite"
   steps:
-    # Step 1: Restore rv cache
+    # Step 1: Cache rv and Ruby installations
     - name: Cache rv
-      if: inputs.bundler-cache == 'true'
       uses: actions/cache@v5
       with:
         path: |
@@ -37,12 +43,29 @@ runs:
           ~/.local/share/rv
         key: rv-${{ runner.os }}-${{ runner.arch }}
 
-    # Step 2: Install rv, Ruby, and optionally run rv ci
-    - name: Setup rv and Ruby
+    # Step 2: Install rv and Ruby
+    - name: Set up Ruby with rv
       id: setup
       shell: bash
       env:
         RUBY_VERSION: ${{ inputs.ruby-version }}
-        BUNDLER_CACHE: ${{ inputs.bundler-cache }}
         WORKING_DIRECTORY: ${{ inputs.working-directory }}
-      run: ${{ github.action_path }}/action.sh
+      run: ${{ github.action_path }}/action.sh setup
+
+    # Step 3: Cache gems (includes compiled native extensions)
+    - name: Cache gems
+      id: gem-cache
+      if: inputs.bundler-cache == 'true'
+      uses: actions/cache@v5
+      with:
+        path: ${{ inputs.working-directory }}/vendor/bundle
+        key: setup-rv-bundler-cache-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.setup.outputs.ruby-version }}-${{ hashFiles(format('{0}/Gemfile.lock', inputs.working-directory)) }}
+        restore-keys: |
+          setup-rv-bundler-cache-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.setup.outputs.ruby-version }}-
+
+    # Step 4: Install gems with rv ci
+    - name: Install gems
+      if: inputs.bundler-cache == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ github.action_path }}/action.sh install-gems
