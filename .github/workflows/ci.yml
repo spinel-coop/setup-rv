@@ -21,3 +21,7 @@ jobs:
 
       - name: Verify Ruby
         run: ruby --version
+
+      - name: Verify gems installed
+        run: rv ruby run -- -rbundler/setup -e "require 'rack'; puts Rack::VERSION"
+        working-directory: .github/workflows
