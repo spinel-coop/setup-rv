@@ -38,7 +38,7 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
   uses: spinel-coop/setup-rv@v1
   with:
     ruby-version: '3.4'
-    gems-clean-install: true
+    install-gems: true
 ```
 
 ### Use the current Ruby version
@@ -48,7 +48,7 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
   uses: spinel-coop/setup-rv@v1
   with:
     ruby-version: 'current'
-    gems-clean-install: true
+    install-gems: true
 ```
 
 ### Specify a working directory
@@ -58,7 +58,7 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
   uses: spinel-coop/setup-rv@v1
   with:
     ruby-version: 'current'
-    gems-clean-install: true
+    install-gems: true
     working-directory: 'path/to/working-dir'
 ```
 
@@ -67,7 +67,7 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
 | Input | Description | Default |
 |-------|-------------|---------|
 | `ruby-version` | Ruby version to install (e.g. `3.4.2` or `current` to read `.ruby-version`). Omit to skip. | _(none)_ |
-| `gems-clean-install` | Run `rv clean-install` and cache installed gems | `false` |
+| `install-gems` | Run `rv clean-install` and cache installed gems | `false` |
 | `working-directory` | Directory containing `Gemfile` and/or `.ruby-version` | `.` |
 | `enable-cache` | Cache rv's download cache (`~/.cache/rv`) | `auto` |
 | `cache-version` | Increment to invalidate the gem cache | `0` |
@@ -87,7 +87,7 @@ By default, `setup-rv` does one thing: installs `rv` and adds it to `PATH`.
 Optional features are enabled via inputs:
 
 1. **`ruby-version`** — Install a Ruby version (or `current` to read `.ruby-version`)
-2. **`gems-clean-install`** — Run `rv clean-install` and cache `vendor/bundle`
+2. **`install-gems`** — Run `rv clean-install` and cache `vendor/bundle`
 3. **`enable-cache`** — Cache rv's download cache at `~/.cache/rv` (on by default)
 
 ## Migrating from `ruby/setup-ruby`
@@ -105,7 +105,7 @@ Optional features are enabled via inputs:
   uses: spinel-coop/setup-rv@v1
   with:
     ruby-version: '3.3'
-    gems-clean-install: true   # setup-rv uses rv clean-install
+    install-gems: true   # setup-rv uses rv clean-install
 ```
 
 ## Supported platforms

@@ -9,7 +9,7 @@ inputs:
   ruby-version:
     description: "Ruby version to install (e.g. '3.4.2' or 'current' to read .ruby-version). Omit to skip."
     required: false
-  gems-clean-install:
+  install-gems:
     description: "Run 'rv ci' and cache installed gems"
     required: false
     default: "false"
@@ -64,10 +64,10 @@ runs:
         RUBY_VERSION: ${{ inputs.ruby-version }}
       run: ${{ github.action_path }}/action.sh install-ruby
 
-    # Optional: cache gems (only when gems-clean-install is true)
+    # Optional: cache gems (only when install-gems is true)
     - name: Cache gems
       id: gem-cache
-      if: inputs.gems-clean-install == 'true'
+      if: inputs.install-gems == 'true'
       uses: actions/cache@v5
       with:
         path: ${{ inputs.working-directory }}/vendor/bundle
@@ -75,9 +75,9 @@ runs:
         restore-keys: |
           setup-rv-gems-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.install-ruby.outputs.ruby-version }}-
 
-    # Optional: install gems (only when gems-clean-install is true)
+    # Optional: install gems (only when install-gems is true)
     - name: Install gems
-      if: inputs.gems-clean-install == 'true'
+      if: inputs.install-gems == 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: ${{ github.action_path }}/action.sh install-gems

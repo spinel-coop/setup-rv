@@ -84,8 +84,8 @@ jobs:
         run: |
           test "${{ steps.setup.outputs.ruby-version }}" = "3.4.2"
 
-  test-gems-clean-install:
-    name: "Test: gems-clean-install"
+  test-install-gems:
+    name: "Test: install-gems"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -100,7 +100,7 @@ jobs:
         uses: ./
         with:
           ruby-version: "current"
-          gems-clean-install: true
+          install-gems: true
           working-directory: test
 
       - name: Verify Ruby on PATH
