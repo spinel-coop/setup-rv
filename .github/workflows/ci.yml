@@ -87,6 +87,9 @@ jobs:
   test-gems-clean-install:
     name: "Test: gems-clean-install"
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: test
 
     steps:
       - name: Checkout
@@ -98,7 +101,7 @@ jobs:
         with:
           ruby-version: 'latest'
           gems-clean-install: true
-          working-directory: .github/workflows
+          working-directory: test
 
       - name: Verify Ruby on PATH
         run: ruby --version
