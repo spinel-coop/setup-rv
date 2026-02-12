@@ -14,8 +14,6 @@ install_rv() {
 }
 
 install_ruby() {
-  cd "$WORKING_DIRECTORY"
-
   if [ "$RUBY_VERSION" = "latest" ]; then
     echo "Installing latest Ruby..."
     rv ruby install
