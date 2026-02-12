@@ -14,8 +14,8 @@ install_rv() {
 }
 
 install_ruby() {
-  if [ "$RUBY_VERSION" = "latest" ]; then
-    echo "Installing latest Ruby..."
+  if [ "$RUBY_VERSION" = "current" ]; then
+    echo "Installing current Ruby..."
     rv ruby install
   else
     echo "Installing Ruby $RUBY_VERSION..."

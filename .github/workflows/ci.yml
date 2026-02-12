@@ -41,19 +41,19 @@ jobs:
         run: |
           test -z "${{ steps.setup.outputs.ruby-version }}"
 
-  test-ruby-latest:
-    name: "Test: ruby-version latest"
+  test-ruby-current:
+    name: "Test: ruby-version current"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install rv with latest Ruby
+      - name: Install rv with current Ruby
         id: setup
         uses: ./
         with:
-          ruby-version: "latest"
+          ruby-version: "current"
 
       - name: Verify Ruby on PATH
         run: ruby --version
@@ -99,7 +99,7 @@ jobs:
         id: setup
         uses: ./
         with:
-          ruby-version: "latest"
+          ruby-version: "current"
           gems-clean-install: true
           working-directory: test
 

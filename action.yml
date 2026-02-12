@@ -7,7 +7,7 @@ branding:
 
 inputs:
   ruby-version:
-    description: "Ruby version to install. Omit to skip Ruby installation."
+    description: "Ruby version to install (e.g. '3.4.2' or 'current' to read .ruby-version). Omit to skip."
     required: false
   gems-clean-install:
     description: "Run 'rv ci' and cache installed gems"
