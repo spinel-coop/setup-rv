@@ -1,45 +1,64 @@
 # setup-rv
 
-A GitHub Action for fast Ruby version management using [rv](https://github.com/spinel-coop/rv).
+A GitHub Action for installing [rv](https://rv.dev), the fast Ruby version manager.
 
 ## Usage
 
-### Install the latest Ruby
+### Install rv
 
 ```yaml
-- name: Setup rv
+- name: Install rv
   uses: spinel-coop/setup-rv@v1
-
-- name: Verify Ruby
-  run: ruby --version
 ```
 
-### Install a specific Ruby version
+Use `rv` in subsequent steps:
 
 ```yaml
-- name: Setup rv
+- name: Install rv
   uses: spinel-coop/setup-rv@v1
+
+- name: Install Ruby
   with:
-    ruby-version: '3.3.0'
+      ruby-version: '3.4'
+  run: rv ruby install
+
+- name: Install gems
+  run: rv ci
+
+- name: Run tests
+  run: bin/rails test
 ```
 
-### Use bundler caching
+### Install rv + Ruby + gems
+
+Installs `rv`, the specified Ruby version, and the gems, in a single step.
 
 ```yaml
-- name: Setup rv
+- name: Install rv, Ruby, and gems
   uses: spinel-coop/setup-rv@v1
   with:
-    ruby-version: '3.3'
-    bundler-cache: true
+    ruby-version: '3.4'
+    gems-clean-install: true
+```
+
+### Use the latest Ruby version
+
+```yaml
+- name: Set up rv
+  uses: spinel-coop/setup-rv@v1
+  with:
+    ruby-version: 'latest'
+    gems-clean-install: true
 ```
 
 ### Specify a working directory
 
 ```yaml
-- name: Setup rv
+- name: Set up rv
   uses: spinel-coop/setup-rv@v1
   with:
-    bundler-cache: true
+    ruby-version: 'latest'
+    gems-clean-install: true
     working-directory: 'path/to/working-dir'
 ```
 
@@ -47,51 +66,53 @@ A GitHub Action for fast Ruby version management using [rv](https://github.com/s
 
 | Input | Description | Default |
 |-------|-------------|---------|
-| `ruby-version` | Ruby version to install | `latest` |
-| `bundler-cache` | Run `rv ci` and cache installed gems | `false` |
+| `ruby-version` | Ruby version to install. Omit to skip Ruby installation. | _(none)_ |
+| `gems-clean-install` | Run `rv clean-install` and cache installed gems | `false` |
 | `working-directory` | Directory containing `Gemfile` and/or `.ruby-version` | `.` |
+| `enable-cache` | Cache rv's download cache (`~/.cache/rv`) | `auto` |
 | `cache-version` | Increment to invalidate the gem cache | `0` |
 
 ## Outputs
 
 | Output | Description | Example |
 |--------|-------------|---------|
-| `ruby-version` | The installed Ruby version | `4.0.1` |
+| `rv-version` | The installed rv version | `0.4.3` |
+| `ruby-version` | The installed Ruby version (empty if Ruby not installed) | `4.0.1` |
 | `cache-hit` | Whether the gem cache was restored exactly | `true` |
-
-## Migrating from `ruby/setup-ruby`
-
-`setup-rv` is designed as a drop-in replacement for basic `ruby/setup-ruby` usage:
-
-```yaml
-# Before
-- name: Setup Ruby
-  uses: ruby/setup-ruby@v1
-  with:
-    ruby-version: '3.3'
-    bundler-cache: true
-
-# After
-- name: Setup rv
-  uses: spinel-coop/setup-rv@v1
-  with:
-    ruby-version: '3.3'
-    bundler-cache: true
-```
 
 ## How it works
 
-1. Installs `rv` and the specified Ruby version (or restores from cache)
-2. If `bundler-cache: true`:
-   - Restores gem cache (includes compiled native extensions)
-   - Runs `rv ci` to install gems
-   - Saves gem cache (keyed by OS, arch, Ruby version, and `Gemfile.lock`)
+By default, `setup-rv` does one thing: installs `rv` and adds it to `PATH`.
+
+Optional features are enabled via inputs:
+
+1. **`ruby-version`** — Install a Ruby version (or `latest` to read `.ruby-version`)
+2. **`gems-clean-install`** — Run `rv clean-install` and cache `vendor/bundle`
+3. **`enable-cache`** — Cache rv's download cache at `~/.cache/rv` (on by default)
+
+## Migrating from `ruby/setup-ruby`
+
+```yaml
+# Before (ruby/setup-ruby)
+- name: Set up Ruby
+  uses: ruby/setup-ruby@v1
+  with:
+    ruby-version: '3.3'
+    bundler-cache: true   # ruby/setup-ruby calls it bundler-cache
+
+# After (setup-rv)
+- name: Set up rv
+  uses: spinel-coop/setup-rv@v1
+  with:
+    ruby-version: '3.3'
+    gems-clean-install: true   # setup-rv uses rv clean-install
+```
 
 ## Supported platforms
 
 - Linux (x86_64, ARM64)
 - macOS (x86_64, ARM64)
-- Windows (x86_64) - coming soon
+- Windows (x86_64)
 
 ## License
 
