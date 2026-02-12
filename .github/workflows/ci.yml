@@ -18,7 +18,7 @@ jobs:
         run: shellcheck action.sh
 
   test-minimal:
-    name: "Test: just install rv"
+    name: "Test: Install and verify rv"
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +53,7 @@ jobs:
         id: setup
         uses: ./
         with:
-          ruby-version: 'latest'
+          ruby-version: "latest"
 
       - name: Verify Ruby on PATH
         run: ruby --version
@@ -75,7 +75,7 @@ jobs:
         id: setup
         uses: ./
         with:
-          ruby-version: '3.4.2'
+          ruby-version: "3.4.2"
 
       - name: Verify correct Ruby version
         run: ruby --version | grep "3.4.2"
@@ -99,7 +99,7 @@ jobs:
         id: setup
         uses: ./
         with:
-          ruby-version: 'latest'
+          ruby-version: "latest"
           gems-clean-install: true
           working-directory: test
 
@@ -125,7 +125,7 @@ jobs:
       - name: Install rv with cache disabled
         uses: ./
         with:
-          enable-cache: 'false'
+          enable-cache: "false"
 
       - name: Verify rv on PATH
         run: rv --version
