@@ -6,6 +6,17 @@ on:
     branches: [main]
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: ShellCheck
+        run: shellcheck action.sh
+
   test-minimal:
     name: "Test: just install rv"
     runs-on: ubuntu-latest
@@ -14,46 +25,104 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up rv
+      - name: Install rv
+        id: setup
         uses: ./
 
-      - name: Verify rv installed
+      - name: Verify rv on PATH
         run: rv --version
 
-  test-ruby:
-    name: "Test: install rv + Ruby"
+      - name: Verify rv-version output is set
+        run: |
+          echo "rv-version=${{ steps.setup.outputs.rv-version }}"
+          test -n "${{ steps.setup.outputs.rv-version }}"
+
+      - name: Verify Ruby was NOT installed
+        run: |
+          test -z "${{ steps.setup.outputs.ruby-version }}"
+
+  test-ruby-latest:
+    name: "Test: ruby-version latest"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up rv with Ruby
+      - name: Install rv with latest Ruby
+        id: setup
         uses: ./
         with:
           ruby-version: 'latest'
 
-      - name: Verify Ruby
+      - name: Verify Ruby on PATH
         run: ruby --version
 
-  test-gems-clean-install:
-    name: "Test: install rv + Ruby + gems"
+      - name: Verify ruby-version output is set
+        run: |
+          echo "ruby-version=${{ steps.setup.outputs.ruby-version }}"
+          test -n "${{ steps.setup.outputs.ruby-version }}"
+
+  test-ruby-pinned:
+    name: "Test: ruby-version pinned"
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up rv with bundler cache
+      - name: Install rv with Ruby 3.4.2
+        id: setup
+        uses: ./
+        with:
+          ruby-version: '3.4.2'
+
+      - name: Verify correct Ruby version
+        run: ruby --version | grep "3.4.2"
+
+      - name: Verify ruby-version output matches
+        run: |
+          test "${{ steps.setup.outputs.ruby-version }}" = "3.4.2"
+
+  test-gems-clean-install:
+    name: "Test: gems-clean-install"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with Ruby and gems
+        id: setup
         uses: ./
         with:
           ruby-version: 'latest'
           gems-clean-install: true
           working-directory: .github/workflows
 
-      - name: Verify Ruby
+      - name: Verify Ruby on PATH
         run: ruby --version
 
       - name: Verify gems installed
-        run: rv ruby run -- -rbundler/setup -e "require 'rack'; puts Rack::VERSION"
-        working-directory: .github/workflows
+        run: ruby -rbundler/setup -e "require 'rack'; puts Rack::VERSION"
+
+      - name: Verify BUNDLE_PATH is set for subsequent steps
+        run: |
+          echo "BUNDLE_PATH=$BUNDLE_PATH"
+          test "$BUNDLE_PATH" = "vendor/bundle"
+
+  test-cache-disabled:
+    name: "Test: enable-cache false"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with cache disabled
+        uses: ./
+        with:
+          enable-cache: 'false'
+
+      - name: Verify rv on PATH
+        run: rv --version
