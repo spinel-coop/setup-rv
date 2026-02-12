@@ -36,7 +36,7 @@ jobs:
       - name: Verify Ruby
         run: ruby --version
 
-  test-bundler-cache:
+  test-gems-clean-install:
     name: "Test: install rv + Ruby + gems"
     runs-on: ubuntu-latest
 
@@ -48,7 +48,7 @@ jobs:
         uses: ./
         with:
           ruby-version: 'latest'
-          bundler-cache: true
+          gems-clean-install: true
           working-directory: .github/workflows
 
       - name: Verify Ruby
