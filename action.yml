@@ -1,5 +1,5 @@
 name: "Setup rv"
-description: "Fast Ruby version management with rv"
+description: "Set up your GitHub Actions workflow with rv"
 author: "spinel-coop"
 branding:
   icon: "box"
@@ -7,10 +7,9 @@ branding:
 
 inputs:
   ruby-version:
-    description: "Ruby version to install. Defaults to latest stable."
+    description: "Ruby version to install (e.g. '3.4.2' or 'current' to read .ruby-version). Omit to skip."
     required: false
-    default: "latest"
-  bundler-cache:
+  install-gems:
     description: "Run 'rv ci' and cache installed gems"
     required: false
     default: "false"
@@ -18,15 +17,22 @@ inputs:
     description: "Directory containing Gemfile and/or .ruby-version"
     required: false
     default: "."
+  enable-cache:
+    description: "Cache rv's download cache (~/.cache/rv)"
+    required: false
+    default: "auto"
   cache-version:
     description: "Increment to invalidate the gem cache"
     required: false
     default: "0"
 
 outputs:
+  rv-version:
+    description: "The installed rv version"
+    value: ${{ steps.install-rv.outputs.rv-version }}
   ruby-version:
     description: "The installed Ruby version"
-    value: ${{ steps.setup.outputs.ruby-version }}
+    value: ${{ steps.install-ruby.outputs.ruby-version }}
   cache-hit:
     description: "Whether the gem cache was restored exactly"
     value: ${{ steps.gem-cache.outputs.cache-hit }}
@@ -34,38 +40,44 @@ outputs:
 runs:
   using: "composite"
   steps:
-    # Step 1: Cache rv and Ruby installations
-    - name: Cache rv
+    # Always: cache rv's download cache
+    - name: Restore rv download cache
+      if: inputs.enable-cache != 'false'
       uses: actions/cache@v5
       with:
-        path: |
-          ~/.cache/rv
-          ~/.local/share/rv
-        key: rv-${{ runner.os }}-${{ runner.arch }}
+        path: ~/.cache/rv
+        key: setup-rv-${{ runner.os }}-${{ runner.arch }}
 
-    # Step 2: Install rv and Ruby
-    - name: Set up Ruby with rv
-      id: setup
+    # Always: install rv
+    - name: Install rv
+      id: install-rv
       shell: bash
+      run: ${{ github.action_path }}/action.sh install-rv
+
+    # Optional: install Ruby (only when ruby-version is provided)
+    - name: Install Ruby
+      id: install-ruby
+      if: inputs.ruby-version != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
       env:
         RUBY_VERSION: ${{ inputs.ruby-version }}
-        WORKING_DIRECTORY: ${{ inputs.working-directory }}
-      run: ${{ github.action_path }}/action.sh setup
+      run: ${{ github.action_path }}/action.sh install-ruby
 
-    # Step 3: Cache gems (includes compiled native extensions)
+    # Optional: cache gems (only when install-gems is true)
     - name: Cache gems
       id: gem-cache
-      if: inputs.bundler-cache == 'true'
+      if: inputs.install-gems == 'true'
       uses: actions/cache@v5
       with:
         path: ${{ inputs.working-directory }}/vendor/bundle
-        key: setup-rv-bundler-cache-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.setup.outputs.ruby-version }}-${{ hashFiles(format('{0}/Gemfile.lock', inputs.working-directory)) }}
+        key: setup-rv-gems-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.install-ruby.outputs.ruby-version }}-${{ hashFiles(format('{0}/Gemfile.lock', inputs.working-directory)) }}
         restore-keys: |
-          setup-rv-bundler-cache-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.setup.outputs.ruby-version }}-
+          setup-rv-gems-v${{ inputs.cache-version }}-${{ runner.os }}-${{ runner.arch }}-ruby-${{ steps.install-ruby.outputs.ruby-version }}-
 
-    # Step 4: Install gems with rv ci
+    # Optional: install gems (only when install-gems is true)
     - name: Install gems
-      if: inputs.bundler-cache == 'true'
+      if: inputs.install-gems == 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: ${{ github.action_path }}/action.sh install-gems

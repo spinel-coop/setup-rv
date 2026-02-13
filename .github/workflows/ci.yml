@@ -6,22 +6,126 @@ on:
     branches: [main]
 
 jobs:
-  Test:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up rv
+      - name: ShellCheck
+        run: shellcheck action.sh
+
+  test-minimal:
+    name: "Test: Install and verify rv"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv
+        id: setup
+        uses: ./
+
+      - name: Verify rv on PATH
+        run: rv --version
+
+      - name: Verify rv-version output is set
+        run: |
+          echo "rv-version=${{ steps.setup.outputs.rv-version }}"
+          test -n "${{ steps.setup.outputs.rv-version }}"
+
+      - name: Verify Ruby was NOT installed
+        run: |
+          test -z "${{ steps.setup.outputs.ruby-version }}"
+
+  test-ruby-current:
+    name: "Test: ruby-version current"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with current Ruby
+        id: setup
         uses: ./
         with:
-          bundler-cache: true
-          working-directory: .github/workflows # Find CI specific Gemfile.lock
+          ruby-version: "current"
 
-      - name: Verify Ruby
+      - name: Verify Ruby on PATH
+        run: ruby --version
+
+      - name: Verify ruby-version output is set
+        run: |
+          echo "ruby-version=${{ steps.setup.outputs.ruby-version }}"
+          test -n "${{ steps.setup.outputs.ruby-version }}"
+
+  test-ruby-pinned:
+    name: "Test: ruby-version pinned"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with Ruby 3.4.2
+        id: setup
+        uses: ./
+        with:
+          ruby-version: "3.4.2"
+
+      - name: Verify correct Ruby version
+        run: ruby --version | grep "3.4.2"
+
+      - name: Verify ruby-version output matches
+        run: |
+          test "${{ steps.setup.outputs.ruby-version }}" = "3.4.2"
+
+  test-install-gems:
+    name: "Test: install-gems"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with Ruby and gems
+        id: setup
+        uses: ./
+        with:
+          ruby-version: "current"
+          install-gems: true
+          working-directory: test
+
+      - name: Verify Ruby on PATH
         run: ruby --version
 
       - name: Verify gems installed
-        run: rv ruby run -- -rbundler/setup -e "require 'rack'; puts Rack::VERSION"
-        working-directory: .github/workflows
+        run: ruby -rbundler/setup -e "require 'rack'; puts Rack::VERSION"
+
+      - name: Verify BUNDLE_PATH is set for subsequent steps
+        run: |
+          echo "BUNDLE_PATH=$BUNDLE_PATH"
+          test "$BUNDLE_PATH" = "vendor/bundle"
+
+  test-cache-disabled:
+    name: "Test: enable-cache false"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install rv with cache disabled
+        uses: ./
+        with:
+          enable-cache: "false"
+
+      - name: Verify rv on PATH
+        run: rv --version

@@ -3,20 +3,19 @@ set -euo pipefail
 
 ACTION="${1:-all}"
 
-setup_ruby() {
-  # Install rv
+install_rv() {
   echo "Installing rv..."
   curl --proto '=https' --tlsv1.2 -LsSf --fail \
     https://github.com/spinel-coop/rv/releases/latest/download/rv-installer.sh | sh
 
   export PATH="$HOME/.cargo/bin:$PATH"
   echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+  echo "rv-version=$(rv --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+}
 
-  # Install Ruby
-  cd "$WORKING_DIRECTORY"
-
-  if [ "$RUBY_VERSION" = "latest" ]; then
-    echo "Installing latest Ruby..."
+install_ruby() {
+  if [ "$RUBY_VERSION" = "current" ]; then
+    echo "Installing current Ruby..."
     rv ruby install
   else
     echo "Installing Ruby $RUBY_VERSION..."
@@ -39,15 +38,18 @@ install_gems() {
 }
 
 case "$ACTION" in
-  setup)
-    setup_ruby
+  install-rv)
+    install_rv
+    ;;
+  install-ruby)
+    install_ruby
     ;;
   install-gems)
     install_gems
     ;;
   *)
     echo "Unknown action: $ACTION"
-    echo "Usage: action.sh [setup|install-gems]"
+    echo "Usage: action.sh [install-rv|install-ruby|install-gems]"
     exit 1
     ;;
 esac
