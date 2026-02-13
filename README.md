@@ -4,34 +4,9 @@ A GitHub Action for installing [rv](https://rv.dev), the fast Ruby version manag
 
 ## Usage
 
-### Install rv
-
-```yaml
-- name: Install rv
-  uses: spinel-coop/setup-rv@v1
-```
-
-Use `rv` in subsequent steps:
-
-```yaml
-- name: Install rv
-  uses: spinel-coop/setup-rv@v1
-
-- name: Install Ruby
-  with:
-      ruby-version: '3.4'
-  run: rv ruby install
-
-- name: Install gems
-  run: rv ci
-
-- name: Run tests
-  run: bin/rails test
-```
-
 ### Install rv + Ruby + gems
 
-Installs `rv`, the specified Ruby version, and the gems, in a single step.
+Install `rv`, the specified Ruby version, and project gems, all in a single step.
 
 ```yaml
 - name: Install rv, Ruby, and gems
@@ -41,14 +16,13 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
     install-gems: true
 ```
 
-### Use the current Ruby version
+### Use the Ruby from `.ruby-version`
 
 ```yaml
 - name: Set up rv
   uses: spinel-coop/setup-rv@v1
   with:
     ruby-version: 'current'
-    install-gems: true
 ```
 
 ### Specify a working directory
@@ -57,9 +31,30 @@ Installs `rv`, the specified Ruby version, and the gems, in a single step.
 - name: Set up rv
   uses: spinel-coop/setup-rv@v1
   with:
-    ruby-version: 'current'
-    install-gems: true
     working-directory: 'path/to/working-dir'
+```
+
+### Install only rv
+
+```yaml
+- name: Install rv
+  uses: spinel-coop/setup-rv@v1
+```
+
+With `rv` installed, you can use it in your own steps. Here's an example of how you might do that.
+
+```yaml
+- name: Install rv
+  uses: spinel-coop/setup-rv@v1
+
+- name: Install Ruby
+  run: rv ruby install
+
+- name: Install gems
+  run: rv ci
+
+- name: Run tests
+  run: bin/rails test
 ```
 
 ## Inputs
