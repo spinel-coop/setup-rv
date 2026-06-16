@@ -22,7 +22,9 @@ install_ruby() {
     rv ruby install "$RUBY_VERSION"
   fi
 
-  INSTALLED=$(rv ruby list --format json | jq -r '.[] | select(.active == true) | .version | sub("^ruby-"; "")')
+  # rv 0.6.0 changed the JSON format: version is now nested under "Installed" or "Remote".
+  # (.Installed.version // .version) handles both 0.6.0+ and older rv versions.
+  INSTALLED=$(rv ruby list --format json | jq -r '.[] | select(.active == true) | (.Installed.version // .version) | sub("^ruby-"; "")')
   echo "Installed Ruby $INSTALLED"
 
   RUBY_BIN="$HOME/.local/share/rv/rubies/ruby-$INSTALLED/bin"
